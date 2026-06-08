@@ -34,25 +34,36 @@ The technical goal is to demonstrate a production-grade cloud system: serverless
 
 ## Architecture Overview
 
-```
-   [ User (Browser) ]
-          |
-          | HTTPS
-          v
-   [ Azure Static Web Apps ]        <- Frontend / SPA
-          |
-          | REST API calls
-          v
-   [ Azure Functions (C#) ]         <- Serverless backend
-     |          |          |
-     v          v          v
- [Blob      [Cosmos     [Claude
- Storage]    DB]        API]
- (Images)  (Recipes)  (AI / OCR)
+```mermaid
+flowchart TD
+    User(["User (Browser)"])
 
-   [ Azure Key Vault ]              <- Secrets at runtime
-   [ GitHub Actions  ]              <- CI/CD
-   [ Terraform       ]              <- Infrastructure as Code
+    subgraph Azure
+        SWA["Azure Static Web Apps\n(Frontend)"]
+        Func["Azure Functions\n(C# Backend)"]
+        Blob["Azure Blob Storage\n(Recipe Images)"]
+        Cosmos["Azure Cosmos DB\n(Recipe Data)"]
+        KV["Azure Key Vault\n(Secrets)"]
+    end
+
+    Claude["Claude API\n(AI Interpretation)"]
+
+    subgraph DevOps
+        TF["Terraform\n(Infrastructure as Code)"]
+        GHA["GitHub Actions\n(CI/CD)"]
+    end
+
+    User -->|HTTPS| SWA
+    SWA -->|REST API| Func
+    Func -->|Store image| Blob
+    Func -->|Read/write recipes| Cosmos
+    Func -->|Interpret image| Claude
+    Func -->|Fetch secrets| KV
+
+    GHA -->|Deploy| SWA
+    GHA -->|Deploy| Func
+    GHA -->|Apply| TF
+    TF -->|Provision| Azure
 ```
 
 **Flow:**
