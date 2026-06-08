@@ -1,0 +1,13 @@
+# Terraform
+terraform.tfvars
+.terraform/
+*.tfstate
+*.tfstate.backup
+
+# C# build output
+bin/
+obj/
+
+# Environment / secrets
+.env
+local.settings.json
