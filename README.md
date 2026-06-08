@@ -34,36 +34,41 @@ The technical goal is to demonstrate a production-grade cloud system: serverless
 
 ## Architecture Overview
 
-```mermaid
-flowchart TD
-    User(["User (Browser)"])
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                        User (Browser)                           │
+└──────────────────────────┬──────────────────────────────────────┘
+                           │ HTTPS
+                           ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                  Azure Static Web Apps                          │
+│                    (Frontend / SPA)                             │
+└──────────────────────────┬──────────────────────────────────────┘
+                           │ REST API calls
+                           ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                   Azure Functions (C#)                          │
+│                                                                 │
+│  ┌─────────────┐  ┌─────────────┐  ┌──────────────────────┐   │
+│  │  Upload     │  │  Recipes    │  │  Interpretation      │   │
+│  │  Function   │  │  Function   │  │  Function            │   │
+│  └──────┬──────┘  └──────┬──────┘  └──────────┬───────────┘   │
+│         │                │                    │               │
+└─────────┼────────────────┼────────────────────┼───────────────┘
+          │                │                    │
+          ▼                ▼                    ▼
+┌──────────────┐  ┌──────────────┐  ┌──────────────────────┐
+│ Azure Blob   │  │ Azure        │  │ Claude AI API        │
+│ Storage      │  │ Cosmos DB    │  │ (Handwriting OCR)    │
+│ (Images)     │  │ (Recipes)    │  └──────────────────────┘
+└──────────────┘  └──────────────┘
 
-    subgraph Azure
-        SWA["Azure Static Web Apps\n(Frontend)"]
-        Func["Azure Functions\n(C# Backend)"]
-        Blob["Azure Blob Storage\n(Recipe Images)"]
-        Cosmos["Azure Cosmos DB\n(Recipe Data)"]
-        KV["Azure Key Vault\n(Secrets)"]
-    end
+                    ┌──────────────────────┐
+                    │  Azure Key Vault     │
+                    │  (Secrets & API Keys)│
+                    └──────────────────────┘
 
-    Claude["Claude API\n(AI Interpretation)"]
-
-    subgraph DevOps
-        TF["Terraform\n(Infrastructure as Code)"]
-        GHA["GitHub Actions\n(CI/CD)"]
-    end
-
-    User -->|HTTPS| SWA
-    SWA -->|REST API| Func
-    Func -->|Store image| Blob
-    Func -->|Read/write recipes| Cosmos
-    Func -->|Interpret image| Claude
-    Func -->|Fetch secrets| KV
-
-    GHA -->|Deploy| SWA
-    GHA -->|Deploy| Func
-    GHA -->|Apply| TF
-    TF -->|Provision| Azure
+Infrastructure managed by Terraform · Deployments via GitHub Actions
 ```
 
 **Flow:**
