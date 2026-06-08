@@ -35,40 +35,24 @@ The technical goal is to demonstrate a production-grade cloud system: serverless
 ## Architecture Overview
 
 ```
-┌─────────────────────────────────────────────────────────────────┐
-│                        User (Browser)                           │
-└──────────────────────────┬──────────────────────────────────────┘
-                           │ HTTPS
-                           ▼
-┌─────────────────────────────────────────────────────────────────┐
-│                  Azure Static Web Apps                          │
-│                    (Frontend / SPA)                             │
-└──────────────────────────┬──────────────────────────────────────┘
-                           │ REST API calls
-                           ▼
-┌─────────────────────────────────────────────────────────────────┐
-│                   Azure Functions (C#)                          │
-│                                                                 │
-│  ┌─────────────┐  ┌─────────────┐  ┌──────────────────────┐   │
-│  │  Upload     │  │  Recipes    │  │  Interpretation      │   │
-│  │  Function   │  │  Function   │  │  Function            │   │
-│  └──────┬──────┘  └──────┬──────┘  └──────────┬───────────┘   │
-│         │                │                    │               │
-└─────────┼────────────────┼────────────────────┼───────────────┘
-          │                │                    │
-          ▼                ▼                    ▼
-┌──────────────┐  ┌──────────────┐  ┌──────────────────────┐
-│ Azure Blob   │  │ Azure        │  │ Claude AI API        │
-│ Storage      │  │ Cosmos DB    │  │ (Handwriting OCR)    │
-│ (Images)     │  │ (Recipes)    │  └──────────────────────┘
-└──────────────┘  └──────────────┘
+   [ User (Browser) ]
+          |
+          | HTTPS
+          v
+   [ Azure Static Web Apps ]        <- Frontend / SPA
+          |
+          | REST API calls
+          v
+   [ Azure Functions (C#) ]         <- Serverless backend
+     |          |          |
+     v          v          v
+ [Blob      [Cosmos     [Claude
+ Storage]    DB]        API]
+ (Images)  (Recipes)  (AI / OCR)
 
-                    ┌──────────────────────┐
-                    │  Azure Key Vault     │
-                    │  (Secrets & API Keys)│
-                    └──────────────────────┘
-
-Infrastructure managed by Terraform · Deployments via GitHub Actions
+   [ Azure Key Vault ]              <- Secrets at runtime
+   [ GitHub Actions  ]              <- CI/CD
+   [ Terraform       ]              <- Infrastructure as Code
 ```
 
 **Flow:**
