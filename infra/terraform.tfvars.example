@@ -1,0 +1,18 @@
+# Copy this file to terraform.tfvars and fill in your values.
+# terraform.tfvars is gitignored — never commit it.
+
+subscription_id = "00000000-0000-0000-0000-000000000000"
+tenant_id       = "00000000-0000-0000-0000-000000000000"
+
+# Keep this short and unique — it is used as a prefix in all resource names
+prefix   = "ffr-dev"
+location = "swedencentral"
+
+# Get this from https://console.anthropic.com/
+claude_api_key = "sk-ant-..."
+
+tags = {
+  project     = "forgotten-family-recipes"
+  environment = "dev"
+  managed_by  = "terraform"
+}
