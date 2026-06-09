@@ -2,7 +2,8 @@
 resource "azurerm_static_web_app" "main" {
   name                = "${var.prefix}-swa"
   resource_group_name = var.resource_group_name
-  location            = var.location
+  # Static Web Apps is not available in swedencentral — westeurope is the closest supported region
+  location            = "westeurope"
   sku_tier            = "Free"
   sku_size            = "Free"
 
