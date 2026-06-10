@@ -19,9 +19,9 @@ output "primary_key" {
   sensitive   = true
 }
 
-output "connection_strings" {
-  description = "Full connection strings — passed to Key Vault, never exposed directly"
-  value       = azurerm_cosmosdb_account.main.connection_strings
+output "primary_sql_connection_string" {
+  description = "Primary SQL connection string — passed to Key Vault, never exposed directly"
+  value       = azurerm_cosmosdb_account.main.primary_sql_connection_string
   sensitive   = true
 }
 
