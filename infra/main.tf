@@ -36,6 +36,14 @@ module "storage" {
   tags                = var.tags
 }
 
+module "cosmosdb" {
+  source              = "./modules/cosmosdb"
+  resource_group_name = azurerm_resource_group.main.name
+  location            = azurerm_resource_group.main.location
+  prefix              = var.prefix
+  tags                = var.tags
+}
+
 module "keyvault" {
   source              = "./modules/keyvault"
   resource_group_name = azurerm_resource_group.main.name
@@ -98,6 +106,14 @@ resource "azurerm_key_vault_secret" "claude_api_key" {
 resource "azurerm_key_vault_secret" "storage_connection_string" {
   name         = "StorageConnectionString"
   value        = module.storage.primary_connection_string
+  key_vault_id = module.keyvault.key_vault_id
+
+  depends_on = [azurerm_key_vault_access_policy.deployer]
+}
+
+resource "azurerm_key_vault_secret" "cosmosdb_primary_key" {
+  name         = "CosmosDbPrimaryKey"
+  value        = module.cosmosdb.primary_key
   key_vault_id = module.keyvault.key_vault_id
 
   depends_on = [azurerm_key_vault_access_policy.deployer]
