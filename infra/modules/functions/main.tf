@@ -22,14 +22,16 @@ resource "azurerm_service_plan" "functions" {
 }
 
 resource "azurerm_linux_function_app" "main" {
-  name                       = "${var.prefix}-func"
-  resource_group_name        = var.resource_group_name
-  location                   = var.location
-  service_plan_id            = azurerm_service_plan.functions.id
-  storage_account_name       = azurerm_storage_account.functions_runtime.name
-  storage_account_access_key = azurerm_storage_account.functions_runtime.primary_access_key
+  name                = "${var.prefix}-func"
+  resource_group_name = var.resource_group_name
+  location            = var.location
+  service_plan_id     = azurerm_service_plan.functions.id
 
-  # System-assigned managed identity lets the app authenticate to Key Vault without credentials
+  # Managed identity authenticates to storage instead of an access key — no secret in state
+  storage_account_name          = azurerm_storage_account.functions_runtime.name
+  storage_uses_managed_identity = true
+
+  # System-assigned managed identity lets the app authenticate to Key Vault and storage without credentials
   identity {
     type = "SystemAssigned"
   }
@@ -51,4 +53,24 @@ resource "azurerm_linux_function_app" "main" {
   }
 
   tags = var.tags
+}
+
+# The Functions runtime (AzureWebJobsStorage) needs these three roles on the runtime storage
+# account when using managed identity instead of an access key
+resource "azurerm_role_assignment" "func_storage_blob" {
+  scope                = azurerm_storage_account.functions_runtime.id
+  role_definition_name = "Storage Blob Data Owner"
+  principal_id         = azurerm_linux_function_app.main.identity[0].principal_id
+}
+
+resource "azurerm_role_assignment" "func_storage_queue" {
+  scope                = azurerm_storage_account.functions_runtime.id
+  role_definition_name = "Storage Queue Data Contributor"
+  principal_id         = azurerm_linux_function_app.main.identity[0].principal_id
+}
+
+resource "azurerm_role_assignment" "func_storage_table" {
+  scope                = azurerm_storage_account.functions_runtime.id
+  role_definition_name = "Storage Table Data Contributor"
+  principal_id         = azurerm_linux_function_app.main.identity[0].principal_id
 }
