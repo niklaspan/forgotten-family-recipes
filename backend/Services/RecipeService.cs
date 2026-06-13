@@ -1,4 +1,5 @@
 using System.Net;
+using System.Text.RegularExpressions;
 using HandedDown.Helpers;
 using HandedDown.Models;
 using Microsoft.Azure.Cosmos;
@@ -119,6 +120,8 @@ public class RecipeService : IRecipeService
     {
         try
         {
+            ValidateAndSanitize(recipe);
+
             // ID is always generated here, not by the caller — this prevents a client from
             // supplying an ID that could collide with or overwrite an existing document.
             recipe.Id = Guid.NewGuid().ToString();
@@ -148,6 +151,8 @@ public class RecipeService : IRecipeService
             // different id, ignoring it prevents a client from accidentally or maliciously
             // updating a different document than the one targeted by the URL.
             recipe.Id = id;
+
+            ValidateAndSanitize(recipe);
 
             // ReplaceItemAsync rather than UpsertItemAsync — Replace enforces that the document
             // must already exist, so a request to update a non-existent recipe fails explicitly
@@ -181,5 +186,71 @@ public class RecipeService : IRecipeService
         {
             throw new InvalidOperationException($"Failed to delete recipe '{id}': {ex.Message}", ex);
         }
+    }
+
+    // Compiled once at class load — reusing the instance avoids repeated regex compilation on
+    // every request, which is measurable overhead for a hot path like create/update.
+    private static readonly Regex HtmlTagPattern =
+        new(@"<[^>]*>", RegexOptions.Compiled, TimeSpan.FromMilliseconds(100));
+
+    // Strips HTML tags from every user-supplied string field before the recipe is persisted,
+    // preventing stored XSS if the data is later rendered without escaping. Validation then
+    // runs on the cleaned values so length limits are checked against what actually gets stored.
+    private static void ValidateAndSanitize(Recipe recipe)
+    {
+        recipe.Title            = StripHtml(recipe.Title);
+        recipe.Author           = StripHtml(recipe.Author);
+        recipe.Chapter          = StripHtml(recipe.Chapter);
+        recipe.ImageUrl         = StripHtml(recipe.ImageUrl);
+        recipe.OriginalImageUrl = StripHtml(recipe.OriginalImageUrl);
+        recipe.Ingredients      = recipe.Ingredients.Select(StripHtml).ToList();
+        recipe.Instructions     = recipe.Instructions.Select(StripHtml).ToList();
+
+        if (string.IsNullOrWhiteSpace(recipe.Title))
+            throw new ArgumentException("Title is required.");
+        if (recipe.Title.Length > 200)
+            throw new ArgumentException("Title must be 200 characters or fewer.");
+
+        if (recipe.Author.Length > 100)
+            throw new ArgumentException("Author must be 100 characters or fewer.");
+
+        if (recipe.Chapter.Length > 100)
+            throw new ArgumentException("Chapter must be 100 characters or fewer.");
+
+        if (recipe.Ingredients.Count == 0)
+            throw new ArgumentException("At least one ingredient is required.");
+        if (recipe.Ingredients.Count > 50)
+            throw new ArgumentException("A recipe cannot have more than 50 ingredients.");
+        if (recipe.Ingredients.Any(i => i.Length > 200))
+            throw new ArgumentException("Each ingredient must be 200 characters or fewer.");
+
+        if (recipe.Instructions.Count == 0)
+            throw new ArgumentException("At least one instruction step is required.");
+        if (recipe.Instructions.Count > 30)
+            throw new ArgumentException("A recipe cannot have more than 30 instruction steps.");
+        if (recipe.Instructions.Any(s => s.Length > 2000))
+            throw new ArgumentException("Each instruction step must be 2000 characters or fewer.");
+
+        ValidateUrl(recipe.ImageUrl,         nameof(recipe.ImageUrl));
+        ValidateUrl(recipe.OriginalImageUrl, nameof(recipe.OriginalImageUrl));
+    }
+
+    private static void ValidateUrl(string url, string fieldName)
+    {
+        if (string.IsNullOrEmpty(url)) return;
+
+        // javascript:// is blocked explicitly because a browser may execute it if the value is
+        // ever placed in an href or src attribute, even if the host starts with https://.
+        if (url.Contains("javascript://", StringComparison.OrdinalIgnoreCase))
+            throw new ArgumentException($"{fieldName} contains a disallowed protocol.");
+
+        if (!url.StartsWith("https://", StringComparison.OrdinalIgnoreCase))
+            throw new ArgumentException($"{fieldName} must start with https://.");
+    }
+
+    private static string StripHtml(string input)
+    {
+        if (string.IsNullOrEmpty(input)) return input;
+        return HtmlTagPattern.Replace(input, string.Empty);
     }
 }

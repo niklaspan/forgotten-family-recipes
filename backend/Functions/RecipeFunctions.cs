@@ -7,6 +7,10 @@ using Newtonsoft.Json;
 
 namespace HandedDown.Functions;
 
+// Rate limiting is not implemented here — it belongs at the Azure Static Web App or Azure API
+// Management layer, which enforce throttle policies before traffic reaches these functions.
+// Adding per-function throttling would duplicate infrastructure-level policy in application code
+// and would not protect against requests that bypass this host entirely.
 public class RecipeFunctions
 {
     private readonly IRecipeService _recipeService;
@@ -93,6 +97,10 @@ public class RecipeFunctions
             // lets clients and caches treat the response differently from a plain data fetch.
             return new ObjectResult(created) { StatusCode = StatusCodes.Status201Created };
         }
+        catch (ArgumentException ex)
+        {
+            return new BadRequestObjectResult(ex.Message);
+        }
         catch (Exception ex)
         {
             return ServerError($"Failed to create recipe: {ex.Message}");
@@ -113,6 +121,10 @@ public class RecipeFunctions
 
             var updated = await _recipeService.UpdateRecipeAsync(id, recipe);
             return new OkObjectResult(updated);
+        }
+        catch (ArgumentException ex)
+        {
+            return new BadRequestObjectResult(ex.Message);
         }
         catch (KeyNotFoundException)
         {
