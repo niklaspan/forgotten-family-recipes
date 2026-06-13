@@ -50,6 +50,10 @@ resource "azurerm_linux_function_app" "main" {
     ClaudeApiKey             = "@Microsoft.KeyVault(VaultName=${var.key_vault_name};SecretName=ClaudeApiKey)"
     StorageConnectionString  = "@Microsoft.KeyVault(VaultName=${var.key_vault_name};SecretName=StorageConnectionString)"
     CosmosDbConnectionString = "@Microsoft.KeyVault(VaultName=${var.key_vault_name};SecretName=CosmosDbConnectionString)"
+
+    # Not secrets — set directly rather than routing through Key Vault
+    CosmosDbDatabaseName  = "recipes-db"
+    CosmosDbContainerName = "recipes"
   }
 
   tags = var.tags

@@ -48,7 +48,7 @@ README.md
 - Main shall be short and clean - only calls to methods
 - Logic goes in Services, not in Functions
 - Use Models to define data structures
-- Write comments that explain WHY, not just what - code should be easy to understand when reviewed later or shown in an interview
+- - Write comments that explain WHY, not just what - code should be easy to understand when reviewed later by any developer
 - Use try/catch and handle errors properly
 - Name variables and methods clearly in English
 
