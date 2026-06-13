@@ -39,14 +39,16 @@ resource "azurerm_cosmosdb_sql_database" "recipes" {
   account_name        = azurerm_cosmosdb_account.main.name
 }
 
-# Partition key is /userId so each user's recipes stay in the same logical partition,
-# keeping cross-user fan-out queries cheap
+# Partition key is /id — each recipe is its own logical partition, which makes
+# point reads (ReadItemAsync with id + partition key) single-partition and therefore
+# the cheapest possible Cosmos DB operation. Cross-partition queries (e.g. by chapter)
+# are acceptable at this data volume.
 resource "azurerm_cosmosdb_sql_container" "recipes" {
   name                = "recipes"
   resource_group_name = var.resource_group_name
   account_name        = azurerm_cosmosdb_account.main.name
   database_name       = azurerm_cosmosdb_sql_database.recipes.name
-  partition_key_paths = ["/userId"]
+  partition_key_paths = ["/id"]
 
   indexing_policy {
     indexing_mode = "consistent"
