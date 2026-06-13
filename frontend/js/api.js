@@ -1,6 +1,7 @@
-// In Azure Static Web Apps the Functions are proxied under /api automatically.
-// Locally the Functions host runs on a different port, so detect and switch.
-const API_BASE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+// SWA CLI (port 4280) proxies /api to the local Functions host automatically, so use a
+// relative path there — same as production. Direct access to the Functions host (port 7071)
+// needs the full URL because no proxy is involved.
+const API_BASE = window.location.port === '7071'
   ? 'http://localhost:7071/api'
   : '/api';
 
