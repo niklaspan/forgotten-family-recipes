@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Add Recipe – HandedDown</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Lato:wght@400;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+  <header>
+    <h1>HandedDown</h1>
+    <a href="index.html" class="header-back">‹ All Recipes</a>
+  </header>
+
+  <main>
+    <h2 class="page-title">Add a Recipe</h2>
+
+    <div id="form-error" class="error-msg" hidden></div>
+
+    <form id="recipe-form" novalidate>
+
+      <div class="form-group">
+        <label for="title">Title *</label>
+        <input type="text" id="title" placeholder="e.g. Grandma's Apple Pie" autocomplete="off" />
+      </div>
+
+      <div class="form-group">
+        <label for="chapter">Chapter</label>
+        <input type="text" id="chapter" placeholder="e.g. Desserts, Mains, Soups…" autocomplete="off" />
+      </div>
+
+      <div class="form-group">
+        <label for="author">Author</label>
+        <input type="text" id="author" placeholder="e.g. Grandma Elsa" autocomplete="off" />
+      </div>
+
+      <div class="form-group">
+        <label>Ingredients</label>
+        <div class="dynamic-list" id="ingredients-list"></div>
+        <button type="button" class="btn-add-item" id="add-ingredient">+ Add ingredient</button>
+      </div>
+
+      <div class="form-group">
+        <label>Instructions</label>
+        <div class="dynamic-list" id="instructions-list"></div>
+        <button type="button" class="btn-add-item" id="add-instruction">+ Add step</button>
+      </div>
+
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary" id="submit-btn">Save Recipe</button>
+        <a href="index.html" class="btn btn-ghost">Cancel</a>
+      </div>
+
+    </form>
+  </main>
+
+  <script src="js/api.js"></script>
+  <script src="js/add.js"></script>
+</body>
+</html>
