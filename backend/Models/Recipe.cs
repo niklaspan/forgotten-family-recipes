@@ -20,16 +20,13 @@ public class Recipe
     [JsonProperty("title")]
     public string Title { get; set; } = string.Empty;
 
-    /// <summary>
-    /// Free-text ingredient list as interpreted from the original handwritten image.
-    /// Stored as a single string rather than a structured list because handwritten recipes
-    /// rarely follow a consistent format — Claude extracts what it can, as-is.
-    /// </summary>
+    // Each ingredient and each instruction step is a separate element so the frontend
+    // can render them as individual list items (<li>) rather than splitting a raw string.
     [JsonProperty("ingredients")]
-    public string Ingredients { get; set; } = string.Empty;
+    public List<string> Ingredients { get; set; } = [];
 
     [JsonProperty("instructions")]
-    public string Instructions { get; set; } = string.Empty;
+    public List<string> Instructions { get; set; } = [];
 
     /// <summary>
     /// The cookbook chapter this recipe belongs to (e.g. "Desserts", "Mains").
