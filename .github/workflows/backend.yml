@@ -23,7 +23,7 @@ jobs:
         run: dotnet build backend/HandedDown.csproj --configuration Release
 
       - name: Publish
-        run: dotnet publish backend/HandedDown.csproj --configuration Release --output ./publish
+        run: dotnet publish backend/HandedDown.csproj --configuration Release --output ./publish --no-self-contained
 
       - name: Deploy to Azure Functions
         uses: azure/functions-action@v1
